@@ -95,7 +95,7 @@ run_test() {
         test0_pass=0
     else
         echo "install_bril.sh finished in ${elapsed}s (limit: 10s)."
-        echo "Test 0 result: PASS"
+        echo "Test 0 result: PASS (time limit only; installation is checked next)"
         test0_pass=1
     fi
 
