@@ -44,7 +44,7 @@ Here is what the script needs to do:
 
 Deno, the runtime that `brili` runs on, is already installed in the homework image, so your script does not need to install it.
 The script should ensure these tools are installed and accessible in the user's PATH.
-It must work on any machine running the homework image, not just yours, and it must finish within 10 seconds.
+It must work on any machine running the homework image, not just yours, and it must finish within 60 seconds.
 
 ## Verifying Your Work
 
@@ -54,8 +54,10 @@ Inside the container, run the verification script with your student ID:
 bash verify_hw1.sh <student-id> test
 ```
 
-The script first runs `timeout 10 bash install_bril.sh` and reports the elapsed time, then checks that the three Bril tools are reachable and runs a small Bril program through them.
-A successful run ends with `FINAL RESULT: PASS`.
+The script grades four parts.
+Problem 0 (1 point) runs `timeout 60 bash install_bril.sh` and reports the elapsed time.
+Problems 1 to 3 (2 points each) run a small Bril program through the installed tools: `bril2json` converts `tests/rem.bril` to JSON, `brili` interprets the JSON with two integer arguments, and the printed result is compared with the expected output in `tests/rem.out`.
+The script ends with a per-problem score summary; full marks are `TOTAL SCORE: 7 / 7`.
 
 Note that the tools are installed inside the container, so they disappear when the container exits.
 This is expected: every `docker run` gives you a fresh environment, and the verification script reinstalls the tools each time it runs.
@@ -65,9 +67,9 @@ This is expected: every `docker run` gives you a fresh environment, and the veri
 Follow the submission instructions in the homework handout on NTU COOL. In short, you place three things in a directory named after your student ID, with the first character in lower case (for example `r14922000`):
 
 1. the screenshot(s) of the `bash verify_hw1.sh <student-id> info` output,
-2. the screenshot of the `bash verify_hw1.sh <student-id> test` output ending with `FINAL RESULT: PASS`,
+2. the screenshot of the `bash verify_hw1.sh <student-id> test` output ending with `TOTAL SCORE: 7 / 7`,
 3. your `install_bril.sh` script file.
 
 Then compress the directory into a zip archive with the same name (for example `r14922000.zip`) and upload the archive to NTU COOL.
 
-During grading we re-run your submitted script in the same Docker image with the same 10 second limit, using this repository's directory layout.
+During grading we re-run your submitted script in the same Docker image with the same 60 second limit, using this repository's directory layout.
