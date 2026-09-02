@@ -62,10 +62,12 @@ This is expected: every `docker run` gives you a fresh environment, and the veri
 
 ## Submission
 
-Follow the submission instructions in the homework handout on NTU COOL. In short, you upload three things:
+Follow the submission instructions in the homework handout on NTU COOL. In short, you place three things in a directory named after your student ID, with the first character in lower case (for example `r14922000`):
 
 1. the screenshot(s) of the `bash verify_hw1.sh <student-id> info` output,
 2. the screenshot of the `bash verify_hw1.sh <student-id> test` output ending with `FINAL RESULT: PASS`,
 3. your `install_bril.sh` script file.
+
+Then compress the directory into a zip archive with the same name (for example `r14922000.zip`) and upload the archive to NTU COOL.
 
 During grading we re-run your submitted script in the same Docker image with the same 10 second limit, using this repository's directory layout.
