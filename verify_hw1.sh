@@ -65,14 +65,59 @@ run_info() {
     echo "---------------- End of Screenshot 1 ----------------"
 }
 
+clear_previous_install() {
+    local tool path leftover
+
+    echo
+    echo "---------------- Clearing tools left by earlier runs ----------------"
+
+    for tool in bril2json bril2txt brili; do
+        # Remove whatever is reachable right now, wherever it lives. The loop
+        # handles a tool reachable through more than one directory, such as
+        # ~/.deno/bin/brili plus a symlink to it in ~/.local/bin. The iteration
+        # cap stops the loop when a copy cannot be removed, for example one
+        # that an earlier run put in a root-owned directory with sudo.
+        for _ in 1 2 3 4 5; do
+            path=$(command -v "$tool" 2>/dev/null) || break
+            rm -f "$path" 2>/dev/null || break
+            hash -r
+        done
+        # The two documented install locations, in case a copy is there but is
+        # not on PATH in this shell.
+        rm -f "$HOME/.local/bin/$tool" "$HOME/.deno/bin/$tool"
+    done
+
+    hash -r
+
+    for tool in bril2json bril2txt brili; do
+        if leftover=$(command -v "$tool" 2>/dev/null); then
+            echo "WARNING: $tool could not be removed, it is still at $leftover"
+            echo "         Problems below may pass without install_bril.sh doing anything."
+        fi
+    done
+
+    echo "Removed bril2json, bril2txt and brili left by earlier runs."
+}
+
 run_test() {
     print_identity
     print_system_info
 
     local p0=0 p1=0 p2=0 p3=0
+    local install_ok=0 tools_found=0 tool path
 
     tmp_dir=$(mktemp -d)
     trap 'rm -rf "$tmp_dir"' EXIT
+
+    # The same fingerprint that info mode prints, so a test screenshot can be
+    # matched against the submitted install_bril.sh.
+    if [[ -f "$INSTALL_SCRIPT" ]]; then
+        echo
+        echo "install_bril.sh SHA256:"
+        sha256sum "$INSTALL_SCRIPT"
+    fi
+
+    clear_previous_install
 
     echo
     echo "---------------- Problem 0: timeout 60 bash install_bril.sh ----------------"
@@ -97,7 +142,7 @@ run_test() {
             echo "install_bril.sh failed with exit status $install_status after ${elapsed}s."
         else
             echo "install_bril.sh finished in ${elapsed}s (limit: 60s)."
-            p0=1
+            install_ok=1
         fi
 
         if [[ "$install_status" -ne 0 ]]; then
@@ -106,18 +151,31 @@ run_test() {
             tail -20 "$tmp_dir/install.log"
         fi
     fi
-    echo "Problem 0 score: $p0 / 1"
 
+    # The tools were removed before the install, so anything reachable now was
+    # put there by this run of install_bril.sh.
+    hash -r
     echo
-    echo "---------------- Tool locations ----------------"
-
+    echo "Tool locations after the install:"
     for tool in bril2json brili bril2txt; do
         if path=$(command -v "$tool" 2>/dev/null); then
-            echo "$tool : $path"
+            printf '  %-9s : %s\n' "$tool" "$path"
+            tools_found=$((tools_found + 1))
         else
-            echo "$tool : NOT FOUND"
+            printf '  %-9s : %s\n' "$tool" "NOT FOUND"
         fi
     done
+
+    # A partial installation still earns the installation point; Problems 1 to 3
+    # are where the missing tools cost marks. The point is withheld only when
+    # the script installed nothing at all, which is what an empty or no-op
+    # install_bril.sh looks like once the environment has been cleared.
+    if [[ "$install_ok" -eq 1 && "$tools_found" -gt 0 ]]; then
+        p0=1
+    elif [[ "$install_ok" -eq 1 ]]; then
+        echo "install_bril.sh installed none of the three tools."
+    fi
+    echo "Problem 0 score: $p0 / 1"
 
     echo
     echo "---------------- Problem 1: bril2json < tests/rem.bril ----------------"

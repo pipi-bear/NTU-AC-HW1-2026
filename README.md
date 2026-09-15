@@ -54,13 +54,19 @@ Inside the container, run the verification script with your student ID:
 bash verify_hw1.sh <student-id> test
 ```
 
-The script grades four parts.
-Problem 0 (1 point) runs `timeout 60 bash install_bril.sh` and reports the elapsed time.
-Problems 1 to 3 (2 points each) run a small Bril program through the installed tools: `bril2json` converts `tests/rem.bril` to JSON, `brili` interprets the JSON with two integer arguments, and the printed result is compared with the expected output in `tests/rem.out`.
+The script first prints the SHA256 checksum of your `install_bril.sh`, then removes any `bril2json`, `bril2txt` and `brili` left behind by an earlier run.
+The removal matters because the Bril tools are installed into your home directory inside the container, not into the mounted repository.
+A tool that you installed by hand earlier in the same container is therefore still there when the script runs.
+Without the removal, the checks below could pass on tools that your `install_bril.sh` did not install, and a missing line in your script would go unnoticed.
+
+The script then grades four parts.
+- Problem 0 (1 point) runs `timeout 60 bash install_bril.sh`, reports the elapsed time, and lists where each of the three tools ended up.
+The point is awarded when the script finishes within the limit without an error and installs at least one of the three tools.
+- Problems 1 to 3 (2 points each) run a small Bril program through the installed tools: `bril2json` converts `tests/rem.bril` to JSON, `brili` interprets the JSON with two integer arguments, and the printed result is compared with the expected output in `tests/rem.out`.
 The script ends with a per-problem score summary; full marks are `TOTAL SCORE: 7 / 7`.
 
 Note that the tools are installed inside the container, so they disappear when the container exits.
-This is expected: every `docker run` gives you a fresh environment, and the verification script reinstalls the tools each time it runs.
+This is expected: every `docker run` gives you a fresh environment, and each run of the verification script installs the tools again from a clean state.
 
 ## Submission
 
@@ -72,4 +78,7 @@ Follow the submission instructions in the homework handout on NTU COOL. In short
 
 Then compress the directory into a zip archive with the same name (for example `r14922000.zip`) and upload the archive to NTU COOL.
 
-During grading we re-run your submitted script in the same Docker image with the same 60 second limit, using this repository's directory layout.
+Both screenshots show the SHA256 checksum of your `install_bril.sh`.
+The two checksums must match each other and the script file you upload, so take both screenshots after you finish editing the script.
+
+During grading we re-run your submitted script in the same Docker image with the same 60 second limit, with the repository at `/home/student/hw`, the same path as in the container you develop in.
